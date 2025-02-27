@@ -1,0 +1,15 @@
+artifact_uri: file:///home/machine/cmpt3830/mlruns/0/5275e2076f1e4e65919e4559d9d4aa6c/artifacts
+end_time: 1740609206162
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 5275e2076f1e4e65919e4559d9d4aa6c
+run_name: lyrical-yak-255
+run_uuid: 5275e2076f1e4e65919e4559d9d4aa6c
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1740609201675
+status: 3
+tags: []
+user_id: machine

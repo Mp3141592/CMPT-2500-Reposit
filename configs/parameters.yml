@@ -1,0 +1,4 @@
+alpha: '0.1'
+fit_intercept: 'True'
+solver: 'auto'
+data_directory: 'data/raw'
