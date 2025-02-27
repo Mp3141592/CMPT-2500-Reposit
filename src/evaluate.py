@@ -43,5 +43,7 @@ class Eval:
 
         # mlflow autolog still runs from train py so commented out
         #mlflow.log_metric("r2_score", r2)
+
+        mlflow.end_run()
     
             

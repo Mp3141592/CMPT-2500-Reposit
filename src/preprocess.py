@@ -166,7 +166,7 @@ for proc in pro_csv:
    else: 
     shutil.move(proc, destination_path)
 
-# Temp module running until main py made
+# Using process.py as main until main is actually created
 X_train_path = "/home/machine/cmpt3830/data/processed/X_train.csv"
 X_test_path = "/home/machine/cmpt3830/data/processed/X_test.csv"
 y_train_path = "/home/machine/cmpt3830/data/processed/y_train.csv"
@@ -174,9 +174,12 @@ y_test_path = "/home/machine/cmpt3830/data/processed/y_test.csv"
 
 from train import Train
 from evaluate import Eval
+from utils.arg_parser import get_input_args
 
 print("Training Begins")
-training = Train(X_train_path, X_test_path, y_train_path, y_test_path)
+in_arg = get_input_args()
+
+training = Train(X_train_path, X_test_path, y_train_path, y_test_path, in_arg.solver, in_arg.alpha, in_arg.fit_intercept)
 
 h = training.trainmodel()
 

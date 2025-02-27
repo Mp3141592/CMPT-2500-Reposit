@@ -72,7 +72,7 @@ class Train:
             MMS = MaxAbsScaler()
             MMS.fit(X_train)
 
-            model = Ridge(alpha=0.1, fit_intercept=True, solver='auto')
+            model = Ridge(alpha=self.alpha, fit_intercept=self.fit_intercept, solver=self.solver)
             model = model.fit(X_train, y_train)
 
             # Done by autolog
