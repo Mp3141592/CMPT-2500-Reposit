@@ -4,6 +4,8 @@
 This api predicts how much a car should be priced at by taking car information in the form of a json request and using that information to predict its price.
 
 ## How to use it?
+To run the api, input python src/predict_api.py in the terminal, since the api is located in the src folder.
+
 To use this api, after confirming that it is running by going to http://127.0.0.1:9999/health_status and seeing that status is up message, use the format and code below to enter the cars information and then run it in the terminal.
 
 curl -X POST http://127.0.0.1:9999/<v1 or v2>/predict \\\
