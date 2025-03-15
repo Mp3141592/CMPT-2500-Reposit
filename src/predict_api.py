@@ -1,10 +1,10 @@
 from flask import Flask, jsonify, request
 import pandas as pd
-
+import joblib
 app = Flask(__name__)
 
 def predict(stock_type, mileage, msrp, model_year, make,
-    transmission_from_vin):
+    transmission_from_vin, model):
     """
     Predicts the price of a car based on features given.
     """
@@ -34,19 +34,23 @@ def predict(stock_type, mileage, msrp, model_year, make,
     new_data = pd.get_dummies(new_data,prefix=['transmission_from_vin'], columns = ['transmission_from_vin'], dtype=float)
     new_data = pd.get_dummies(new_data,prefix=['stock_type'], columns = ['stock_type'], dtype=float)
 
+    # Grab make data
     makedata = pd.DataFrame({f'make_{make}'})
 
-    # 
+    # Rename if transmission column name different
     if 'transmission_from_vin_A' in new_data.columns:
         new_data = new_data.rename(columns={'transmission_from_vin_A': "transmission_from_vin_M"})
     
+    # Add in car make columns
     for i in make_list:
         if i not in makedata.columns:
             new_data[i] = 0
         else:
             new_data[i] = 1
+
+    price = model.predict(new_data)
     
-    return new_data
+    return float(price)
 
 
 
@@ -60,15 +64,15 @@ def home():
         "endpoints": {
             "/Car_Price_Prediction_home": "The home page",
             "/health_status": "Indicates if API is available and ready",
-            "/v1/predict1": "Uses a model to predict info in json format",
-            "/v2/predict1": "Same as v1 but different model"
+            "/v1/predict1": "Uses v1 model to predict price",
+            "/v2/predict1": "Uses v2 model to predict price"
         },
 
         "input_format" : {
             "stock_type": "Must be a string and either USED or NEW",
             "mileage": "Float with 1 decimal",
             "msrp": "Int with no deciamals",
-            "model_year": "Int of 4 numbers and stays below 2025",
+            "model_year": "Int of 4 numbers",
             "make": "String that starts with a capital",
             "transmission_from_vin": "String that is either A for Auto or M for Manual"
         },
@@ -77,18 +81,18 @@ def home():
             "mileage": 543.0,
             "msrp": 20,
             "model_year": 2023,
-            "make": "Volvo",
+            "make": "Alfa Romeo",
             "transmission_from_vin": "M"          
         },
         "example_response": {
-            "sucess": True,
-            "prediction":{
-                "price": 45340      
+            "success": True,  
+            "predicted_price": 45340      
             }
         }
-    }
+    
     return jsonify(app_info)
 
+    
 @app.route('/health_status', methods=['GET'])
 def health_check():
 
@@ -98,8 +102,90 @@ def health_check():
     }
     return jsonify(health)
 
+@app.route('/v1/predict', methods=['POST'])
+def v1():
+    
+    if not request.is_json:
+        return jsonify({"error": "Request must be JSON data"})
+    
+    data = request.json
+    
+    
+    if "stock_type" not in data:
+        return jsonify ({"error": "Missing stock_type data"})
+    
+    if "mileage" not in data:
+        return jsonify ({"error": "Missing mileage data"})
+    
+    if "msrp" not in data:
+        return jsonify ({"error": "Missing msrp data"})
+    
+    if "model_year" not in data:
+        return jsonify ({"error": "Missing model_year data"})
+    
+    if "make" not in data:
+        return jsonify ({"error": "Missing make data"})
+    
+    if "transmission_from_vin" not in data:
+        return jsonify ({"error": "Missing transmission_from_vin data"})
+    
+    stock_type = data.get('stock_type')
+    mileage = data.get('mileage')
+    msrp = data.get('msrp')
+    model_year = data.get('model_year')
+    make = data.get('make')
+    transmission_from_vin = data.get('transmission_from_vin')
 
+    model = joblib.load('/home/machine/cmpt3830/models/ridge_model_v1.jlib')
 
+    results = predict(stock_type, mileage, msrp, model_year, make, transmission_from_vin, model)
+
+    return jsonify({
+        "success": True,
+        "price_predicted": results
+    })
+
+@app.route('/v2/predict', methods=['POST'])
+def v2():
+    if not request.is_json:
+        return jsonify({"error": "Request must be JSON data"})
+    
+    data = request.json
+    
+    
+    if "stock_type" not in data:
+        return jsonify ({"error": "Missing stock_type data"})
+    
+    if "mileage" not in data:
+        return jsonify ({"error": "Missing mileage data"})
+    
+    if "msrp" not in data:
+        return jsonify ({"error": "Missing msrp data"})
+    
+    if "model_year" not in data:
+        return jsonify ({"error": "Missing model_year data"})
+    
+    if "make" not in data:
+        return jsonify ({"error": "Missing make data"})
+    
+    if "transmission_from_vin" not in data:
+        return jsonify ({"error": "Missing transmission_from_vin data"})
+    
+    stock_type = data.get('stock_type')
+    mileage = data.get('mileage')
+    msrp = data.get('msrp')
+    model_year = data.get('model_year')
+    make = data.get('make')
+    transmission_from_vin = data.get('transmission_from_vin')
+
+    model = joblib.load('/home/machine/cmpt3830/models/ridge_model_v2.jlib')
+
+    results = predict(stock_type, mileage, msrp, model_year, make, transmission_from_vin, model)
+
+    return jsonify({
+        "success": True,
+        "price_predicted": results
+    })
 
 if __name__ == "__main__":
     app.run(host='127.0.0.1', port=9999, debug=True)

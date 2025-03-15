@@ -84,11 +84,11 @@ class Train:
             target_folder = "/home/machine/cmpt3830/models"
 
             # Save the model with joblib 
-            joblib.dump(model , 'ridge_model.jlib')
+            joblib.dump(model , 'ridge_model_v2.jlib')
 
             # export model to models file
-            destination_path = os.path.join(target_folder, "ridge_model.jlib")
-            shutil.move("ridge_model.jlib", destination_path)
+            destination_path = os.path.join(target_folder, "ridge_model_v2.jlib")
+            shutil.move("ridge_model_v2.jlib", destination_path)
 
             # Trouble shooting below
             autolog_run = mlflow.active_run()
