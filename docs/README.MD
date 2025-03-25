@@ -20,3 +20,9 @@ Run make init to install requirements, source .venv/bin/activate to activate the
 
 Currently,  preprocess is the only one that needs to be run out of it, train, and eval. Both Train and eval have been turned
 into modules that are currently called at preprocess (though this may change to a proper main file later on)
+
+## Docker Contanerization
+
+To build the docker images, use the commmand docker-compose up --build in the terminal.
+
+To use the flask application in the container, run the container and then open a new termianl. Afterwards, use src/predict_api.py in the terminal and enter a similar format like how you would do so for the regular flask application (see API.MD for more information)

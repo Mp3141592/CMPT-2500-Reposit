@@ -1,0 +1,15 @@
+artifact_uri: file:///home/machine/cmpt3830/mlruns/0/e16689be07a24b62bcc5cd449fb206f2/artifacts
+end_time: null
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: e16689be07a24b62bcc5cd449fb206f2
+run_name: GoAuto0.1
+run_uuid: e16689be07a24b62bcc5cd449fb206f2
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1742862015799
+status: 1
+tags: []
+user_id: machine
