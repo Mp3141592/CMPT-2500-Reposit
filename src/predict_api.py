@@ -1,6 +1,8 @@
 from flask import Flask, jsonify, request
 import pandas as pd
 import joblib
+import logging
+
 app = Flask(__name__)
 
 def predict(stock_type, mileage, msrp, model_year, make,
@@ -9,48 +11,75 @@ def predict(stock_type, mileage, msrp, model_year, make,
     Predicts the price of a car based on features given.
     """
 
-    # List of all makes in model
-    make_list = ['make_Acura', 'make_Alfa Romeo', 'make_Audi',
-       'make_BMW', 'make_Buick', 'make_Cadillac', 'make_Chevrolet',
-       'make_Chrysler', 'make_Dodge', 'make_Fiat', 'make_Ford', 'make_GMC',
-       'make_Genesis', 'make_Honda', 'make_Hyundai', 'make_Infiniti',
-       'make_Jaguar', 'make_Jeep', 'make_Kia', 'make_Land Rover', 'make_Lexus',
-       'make_Lincoln', 'make_Maserati', 'make_Mazda', 'make_Mercedes-Benz',
-       'make_Mini', 'make_Mitsubishi', 'make_Nissan', 'make_Polestar',
-       'make_Pontiac', 'make_Porsche', 'make_Ram', 'make_Rivian', 'make_Scion',
-       'make_Smart', 'make_Subaru', 'make_Suzuki', 'make_Tesla', 'make_Toyota',
-       'make_Volkswagen', 'make_Volvo']
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.StreamHandler(),  # Log to console
+            logging.FileHandler('app.log')  # Log to file            
+        ]
+     )
+
+    logger = logging.getLogger(__name__)
+
+    try:
+
+        logger.info(f"Received prediction request with stock_type: {stock_type}")
+        logger.info(f"Received prediction request with mileage: {mileage}")
+        logger.info(f"Received prediction request with msrp: {msrp}")
+        logger.info(f"Received prediction request with model_year: {model_year}")
+        logger.info(f"Received prediction request with make: {make}")
+        logger.info(f"Received prediction request with transmission: {transmission_from_vin}")
+        logger.info(f"Received prediction request with model: {model}")
+
+        # List of all makes in model
+        make_list = ['make_Acura', 'make_Alfa Romeo', 'make_Audi',
+        'make_BMW', 'make_Buick', 'make_Cadillac', 'make_Chevrolet',
+        'make_Chrysler', 'make_Dodge', 'make_Fiat', 'make_Ford', 'make_GMC',
+        'make_Genesis', 'make_Honda', 'make_Hyundai', 'make_Infiniti',
+        'make_Jaguar', 'make_Jeep', 'make_Kia', 'make_Land Rover', 'make_Lexus',
+        'make_Lincoln', 'make_Maserati', 'make_Mazda', 'make_Mercedes-Benz',
+        'make_Mini', 'make_Mitsubishi', 'make_Nissan', 'make_Polestar',
+        'make_Pontiac', 'make_Porsche', 'make_Ram', 'make_Rivian', 'make_Scion',
+        'make_Smart', 'make_Subaru', 'make_Suzuki', 'make_Tesla', 'make_Toyota',
+        'make_Volkswagen', 'make_Volvo']
+        
+        # Create basic dataframe from new data
+        d = {'stock_type': [stock_type],
+            'mileage': [mileage],
+            'model_year': [model_year],
+            'msrp': [msrp],
+            'transmission_from_vin': [transmission_from_vin]
+            }
+        new_data = pd.DataFrame(d)
+
+        # Encode new data
+        new_data = pd.get_dummies(new_data,prefix=['transmission_from_vin'], columns = ['transmission_from_vin'], dtype=float)
+        new_data = pd.get_dummies(new_data,prefix=['stock_type'], columns = ['stock_type'], dtype=float)
+
+        # Grab make data
+        makedata = pd.DataFrame({f'make_{make}'})
+
+        # Rename if transmission column name different
+        if 'transmission_from_vin_A' in new_data.columns:
+            new_data = new_data.rename(columns={'transmission_from_vin_A': "transmission_from_vin_M"})
+        
+        # Add in car make columns
+        for i in make_list:
+            if i not in makedata.columns:
+                new_data[i] = 0
+            else:
+                new_data[i] = 1
+
+        price = model.predict(new_data)
+        
+        logger.info(f"Prediction successful")
+
+        return float(price)
     
-    # Create basic dataframe from new data
-    d = {'stock_type': [stock_type],
-         'mileage': [mileage],
-         'model_year': [model_year],
-         'msrp': [msrp],
-         'transmission_from_vin': [transmission_from_vin]
-         }
-    new_data = pd.DataFrame(d)
-
-    # Encode new data
-    new_data = pd.get_dummies(new_data,prefix=['transmission_from_vin'], columns = ['transmission_from_vin'], dtype=float)
-    new_data = pd.get_dummies(new_data,prefix=['stock_type'], columns = ['stock_type'], dtype=float)
-
-    # Grab make data
-    makedata = pd.DataFrame({f'make_{make}'})
-
-    # Rename if transmission column name different
-    if 'transmission_from_vin_A' in new_data.columns:
-        new_data = new_data.rename(columns={'transmission_from_vin_A': "transmission_from_vin_M"})
-    
-    # Add in car make columns
-    for i in make_list:
-        if i not in makedata.columns:
-            new_data[i] = 0
-        else:
-            new_data[i] = 1
-
-    price = model.predict(new_data)
-    
-    return float(price)
+    except Exception as e:
+        logger.error(f"Prediction failed with error: {str(e)}") 
+        raise 
 
 
 

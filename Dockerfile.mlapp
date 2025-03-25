@@ -1,0 +1,21 @@
+FROM python:3.12.3
+
+WORKDIR /app
+
+COPY requirements.txt .
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+COPY data/raw/ ./data/raw
+
+RUN mkdir -p models data/raw data/processed data/external /app/logs
+
+ENV LOG_DIR=/app/logs
+ENV PYTHONPATH=/app
+ENV FLASK_APP=src/predict_api.py
+
+EXPOSE 5001
+
+CMD ["python", "src/predict_api.py"]

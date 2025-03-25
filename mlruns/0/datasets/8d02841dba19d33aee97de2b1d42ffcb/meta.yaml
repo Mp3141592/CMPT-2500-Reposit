@@ -1,0 +1,39 @@
+digest: 37d1a72e
+name: dataset
+profile: '{"num_rows": 112704, "num_elements": 5184384}'
+schema: '{"mlflow_colspec": [{"type": "double", "name": "mileage", "required": true},
+  {"type": "long", "name": "model_year", "required": true}, {"type": "long", "name":
+  "msrp", "required": true}, {"type": "double", "name": "transmission_from_vin_M",
+  "required": true}, {"type": "double", "name": "stock_type_USED", "required": true},
+  {"type": "double", "name": "make_Acura", "required": true}, {"type": "double", "name":
+  "make_Alfa Romeo", "required": true}, {"type": "double", "name": "make_Audi", "required":
+  true}, {"type": "double", "name": "make_BMW", "required": true}, {"type": "double",
+  "name": "make_Buick", "required": true}, {"type": "double", "name": "make_Cadillac",
+  "required": true}, {"type": "double", "name": "make_Chevrolet", "required": true},
+  {"type": "double", "name": "make_Chrysler", "required": true}, {"type": "double",
+  "name": "make_Dodge", "required": true}, {"type": "double", "name": "make_Fiat",
+  "required": true}, {"type": "double", "name": "make_Ford", "required": true}, {"type":
+  "double", "name": "make_GMC", "required": true}, {"type": "double", "name": "make_Genesis",
+  "required": true}, {"type": "double", "name": "make_Honda", "required": true}, {"type":
+  "double", "name": "make_Hyundai", "required": true}, {"type": "double", "name":
+  "make_Infiniti", "required": true}, {"type": "double", "name": "make_Jaguar", "required":
+  true}, {"type": "double", "name": "make_Jeep", "required": true}, {"type": "double",
+  "name": "make_Kia", "required": true}, {"type": "double", "name": "make_Land Rover",
+  "required": true}, {"type": "double", "name": "make_Lexus", "required": true}, {"type":
+  "double", "name": "make_Lincoln", "required": true}, {"type": "double", "name":
+  "make_Maserati", "required": true}, {"type": "double", "name": "make_Mazda", "required":
+  true}, {"type": "double", "name": "make_Mercedes-Benz", "required": true}, {"type":
+  "double", "name": "make_Mini", "required": true}, {"type": "double", "name": "make_Mitsubishi",
+  "required": true}, {"type": "double", "name": "make_Nissan", "required": true},
+  {"type": "double", "name": "make_Polestar", "required": true}, {"type": "double",
+  "name": "make_Pontiac", "required": true}, {"type": "double", "name": "make_Porsche",
+  "required": true}, {"type": "double", "name": "make_Ram", "required": true}, {"type":
+  "double", "name": "make_Rivian", "required": true}, {"type": "double", "name": "make_Scion",
+  "required": true}, {"type": "double", "name": "make_Smart", "required": true}, {"type":
+  "double", "name": "make_Subaru", "required": true}, {"type": "double", "name": "make_Suzuki",
+  "required": true}, {"type": "double", "name": "make_Tesla", "required": true}, {"type":
+  "double", "name": "make_Toyota", "required": true}, {"type": "double", "name": "make_Volkswagen",
+  "required": true}, {"type": "double", "name": "make_Volvo", "required": true}]}'
+source: '{"tags": {"mlflow.user": "machine", "mlflow.source.name": "src/preprocess.py",
+  "mlflow.source.type": "LOCAL", "mlflow.source.git.commit": "4881b9e6556c60fcd58630f5e43e5e35838165e0"}}'
+source_type: code
