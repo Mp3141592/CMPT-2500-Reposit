@@ -27,6 +27,7 @@ import shutil
 import mlflow
 import mlflow.sklearn 
 from utils.arg_parser import get_input_args
+from src.utils.monitoring import get_training_monitor
 
 in_arg = get_input_args()
 
@@ -46,7 +47,10 @@ class Train:
 
         try: 
             
+            monitor = get_training_monitor(port=8002)
             logger.info(f"Training commencing")
+
+
             # Start an MLflow run using the context manager
             with mlflow.start_run(run_name=f"GoAuto{in_arg.alpha}") as run:
                 
@@ -80,14 +84,24 @@ class Train:
                 Removed pipeline since it was messing with export of model and instead manually input best params
                 """
 
+
+                #X_train = X_train.drop(columns=['make_Suzuki'])
+                #X_test = X_test.drop(columns=['make_Suzuki'])
+
                 #Create actual model with best params found after applying scaler
                 MMS = MaxAbsScaler()
                 MMS.fit(X_train)
 
-                X_train = X_train.drop(columns=['make_Suzuki'])
+
 
                 model = Ridge(alpha=self.alpha, fit_intercept=self.fit_intercept, solver=self.solver)
                 model = model.fit(X_train, y_train)
+
+                y_hat = model.predict(X_test)
+
+                mse = mean_squared_error(y_test, y_hat)
+
+                monitor.record_metrics(mse=mse)
 
                 # Done by autolog
                 #mlflow.sklearn.log_model(model, artifact_path="model", input_example=X_train.iloc[:1])

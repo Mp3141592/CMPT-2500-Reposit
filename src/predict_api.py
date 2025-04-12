@@ -2,8 +2,21 @@ from flask import Flask, jsonify, request
 import pandas as pd
 import joblib
 import logging
+from prometheus_flask_exporter import PrometheusMetrics
+from prometheus_client import Counter, Histogram, Gauge
+import time
+import os
 
 app = Flask(__name__)
+
+# Define what promethus should record
+metrics = PrometheusMetrics(app)
+
+# Copied metrics
+prediction_requests = Counter('model_prediction_requests_total', 'Total number of prediction requests', ['model_version', 'status'])
+prediction_time = Histogram('model_prediction_duration_seconds', 'Time spent processing prediction', ['model_version'])
+memory_usage = Gauge('app_memory_usage_bytes', 'Memory usage of the application')
+cpu_usage = Gauge('app_cpu_usage_percent', 'CPU usage percentage of the application')
 
 def predict(stock_type, mileage, msrp, model_year, make,
     transmission_from_vin, model):
@@ -81,7 +94,14 @@ def predict(stock_type, mileage, msrp, model_year, make,
         logger.error(f"Prediction failed with error: {str(e)}") 
         raise 
 
-
+def monitor_resources():
+    """Update system resource metrics every 15 seconds"""
+    import psutil
+    while True:
+        process = psutil.Process(os.getpid())
+        memory_usage.set(process.memory_info().rss)  # in bytes
+        cpu_usage.set(process.cpu_percent())
+        time.sleep(15)
 
 # Decorater for app (endpoint)
 @app.route('/Car_Price_Prediction_home', methods=['GET'])
@@ -133,6 +153,10 @@ def health_check():
 
 @app.route('/v1/predict', methods=['POST'])
 def v1():
+
+    start_time = time.time()
+
+    mv = "v1"
     
     if not request.is_json:
         return jsonify({"error": "Request must be JSON data"})
@@ -167,15 +191,34 @@ def v1():
 
     model = joblib.load('/home/machine/cmpt3830/models/ridge_model_v1.jlib')
 
-    results = predict(stock_type, mileage, msrp, model_year, make, transmission_from_vin, model)
+    try:
+        results = predict(stock_type, mileage, msrp, model_year, make, transmission_from_vin, model)
 
-    return jsonify({
-        "success": True,
-        "price_predicted": results
-    })
+        prediction_requests.labels(model_version=mv, status="success").inc()
+        prediction_time.labels(model_version=mv).observe(time.time() - start_time)
+
+        return jsonify({
+            "success": True,
+            "price_predicted": results
+        })
+
+    except Exception as e:
+        # Record failed prediction
+        prediction_requests.labels(
+            model_version=mv,
+            status="error"
+        ).inc()
+    
+
+
 
 @app.route('/v2/predict', methods=['POST'])
 def v2():
+
+    start_time = time.time()
+
+    mv = "v2"
+
     if not request.is_json:
         return jsonify({"error": "Request must be JSON data"})
     
@@ -209,12 +252,29 @@ def v2():
 
     model = joblib.load('/home/machine/cmpt3830/models/ridge_model_v2.jlib')
 
-    results = predict(stock_type, mileage, msrp, model_year, make, transmission_from_vin, model)
+    try:
+        results = predict(stock_type, mileage, msrp, model_year, make, transmission_from_vin, model)
 
-    return jsonify({
-        "success": True,
-        "price_predicted": results
-    })
+        prediction_requests.labels(model_version=mv, status="success").inc()
+        prediction_time.labels(model_version=mv).observe(time.time() - start_time)
+
+        return jsonify({
+            "success": True,
+            "price_predicted": results
+        })
+
+    except Exception as e:
+        # Record failed prediction
+        prediction_requests.labels(
+            model_version=mv,
+            status="error"
+        ).inc()
+
 
 if __name__ == "__main__":
+    import threading
+    import os
+    monitor_thread = threading.Thread(target=monitor_resources, daemon=True)
+    monitor_thread.start()
+
     app.run(host='127.0.0.1', port=9999, debug=True)
