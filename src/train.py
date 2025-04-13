@@ -48,6 +48,7 @@ class Train:
         try: 
             
             monitor = get_training_monitor(port=8002)
+            monitor.start()
             logger.info(f"Training commencing")
 
 
