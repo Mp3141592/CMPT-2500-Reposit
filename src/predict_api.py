@@ -2,39 +2,49 @@ from flask import Flask, jsonify, request
 import pandas as pd
 import joblib
 import logging
-from prometheus_flask_exporter import PrometheusMetrics
-from prometheus_client import Counter, Histogram, Gauge
 import time
+import threading
+import psutil
 import os
 
+# Import Flask and Prometheus packages
+from prometheus_client import Counter, Histogram, Gauge
+from prometheus_flask_exporter import PrometheusMetrics
+
+# Initialize Flask app
 app = Flask(__name__)
 
-# Define what promethus should record
+# Initialize PrometheusMetrics with default registry for compatibility with Grafana dashboard
 metrics = PrometheusMetrics(app)
 
-# Copied metrics
-prediction_requests = Counter('model_prediction_requests_total', 'Total number of prediction requests', ['model_version', 'status'])
+# Add basic app info metric
+metrics.info('flask_app_info', 'Application info', version='1.0.0')
+    
+# Register prediction metrics with names matching Grafana dashboard expectations
+prediction_requests = Counter('model_prediction_requests_total', 'Total number of prediction requests', ['model_version'])
 prediction_time = Histogram('model_prediction_duration_seconds', 'Time spent processing prediction', ['model_version'])
+request_counter = Counter("api_requests_total", "Total number of API requests", ["method", "endpoint"])
+
+# Use standard names for memory and CPU metrics that Grafana dashboard is configured to use
 memory_usage = Gauge('app_memory_usage_bytes', 'Memory usage of the application')
 cpu_usage = Gauge('app_cpu_usage_percent', 'CPU usage percentage of the application')
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(),  # Log to console
+        logging.FileHandler('app.log')  # Log to file            
+    ]
+)
+
+logger = logging.getLogger(__name__)
 
 def predict(stock_type, mileage, msrp, model_year, make,
     transmission_from_vin, model):
     """
     Predicts the price of a car based on features given.
     """
-
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        handlers=[
-            logging.StreamHandler(),  # Log to console
-            logging.FileHandler('app.log')  # Log to file            
-        ]
-     )
-
-    logger = logging.getLogger(__name__)
-
     try:
 
         logger.info(f"Received prediction request with stock_type: {stock_type}")
@@ -94,15 +104,6 @@ def predict(stock_type, mileage, msrp, model_year, make,
         logger.error(f"Prediction failed with error: {str(e)}") 
         raise 
 
-def monitor_resources():
-    """Update system resource metrics every 15 seconds"""
-    import psutil
-    while True:
-        process = psutil.Process(os.getpid())
-        memory_usage.set(process.memory_info().rss)  # in bytes
-        cpu_usage.set(process.cpu_percent())
-        time.sleep(15)
-
 # Decorater for app (endpoint)
 @app.route('/Car_Price_Prediction_home', methods=['GET'])
 def home():
@@ -155,15 +156,16 @@ def health_check():
 def v1():
 
     start_time = time.time()
-
-    mv = "v1"
     
+    request_counter.labels(method="POST", endpoint="/v1/predict").inc()
+
     if not request.is_json:
         return jsonify({"error": "Request must be JSON data"})
     
     data = request.json
     
-    
+    prediction_requests.labels(model_version="v1").inc()
+
     if "stock_type" not in data:
         return jsonify ({"error": "Missing stock_type data"})
     
@@ -189,25 +191,15 @@ def v1():
     make = data.get('make')
     transmission_from_vin = data.get('transmission_from_vin')
 
-    model = joblib.load('/home/machine/cmpt3830/models/ridge_model_v1.jlib')
+    model = joblib.load('/app/models/ridge_model_v1.jlib')
 
-    try:
-        results = predict(stock_type, mileage, msrp, model_year, make, transmission_from_vin, model)
+    results = predict(stock_type, mileage, msrp, model_year, make, transmission_from_vin, model)
+    prediction_time.labels(model_version="v1").observe(time.time() - start_time)
 
-        prediction_requests.labels(model_version=mv, status="success").inc()
-        prediction_time.labels(model_version=mv).observe(time.time() - start_time)
-
-        return jsonify({
-            "success": True,
-            "price_predicted": results
-        })
-
-    except Exception as e:
-        # Record failed prediction
-        prediction_requests.labels(
-            model_version=mv,
-            status="error"
-        ).inc()
+    return jsonify({
+        "success": True,
+        "price_predicted": results
+    })
     
 
 
@@ -216,14 +208,14 @@ def v1():
 def v2():
 
     start_time = time.time()
-
-    mv = "v2"
-
+    
+    request_counter.labels(method="POST", endpoint="/v2/predict").inc()
+    
     if not request.is_json:
         return jsonify({"error": "Request must be JSON data"})
     
     data = request.json
-    
+    prediction_requests.labels(model_version="v2").inc()
     
     if "stock_type" not in data:
         return jsonify ({"error": "Missing stock_type data"})
@@ -250,31 +242,50 @@ def v2():
     make = data.get('make')
     transmission_from_vin = data.get('transmission_from_vin')
 
-    model = joblib.load('/home/machine/cmpt3830/models/ridge_model_v2.jlib')
+    model = joblib.load('/app/models/ridge_model_v2.jlib')
 
-    try:
-        results = predict(stock_type, mileage, msrp, model_year, make, transmission_from_vin, model)
+    results = predict(stock_type, mileage, msrp, model_year, make, transmission_from_vin, model)
 
-        prediction_requests.labels(model_version=mv, status="success").inc()
-        prediction_time.labels(model_version=mv).observe(time.time() - start_time)
+    prediction_time.labels(model_version="v2").observe(time.time() - start_time)
 
-        return jsonify({
-            "success": True,
-            "price_predicted": results
-        })
+    return jsonify({
+        "success": True,
+        "price_predicted": results
+    })
 
-    except Exception as e:
-        # Record failed prediction
-        prediction_requests.labels(
-            model_version=mv,
-            status="error"
-        ).inc()
-
+def monitor_resources():
+    """Background thread function to monitor resource usage"""
+    while True:
+        try:
+            # Update memory and CPU metrics
+            process = psutil.Process(os.getpid())
+            
+            # Set memory usage in bytes (Resident Set Size)
+            memory_usage.set(process.memory_info().rss)  
+            
+            # Set CPU percentage - this is what the grafana dashboard expects
+            cpu_usage.set(process.cpu_percent(interval=1.0))
+            
+            # Log successful metric updates at regular intervals
+            logger.debug(f"Updated memory usage: {process.memory_info().rss} bytes, CPU usage: {process.cpu_percent()}%")
+            
+            # Wait before next update
+            time.sleep(15)  # Update metrics every 15 seconds
+        except Exception as e:
+            logger.error(f"Error in resource monitoring thread: {e}")
+            time.sleep(60)
 
 if __name__ == "__main__":
-    import threading
-    import os
+    # Start the resource monitoring thread
     monitor_thread = threading.Thread(target=monitor_resources, daemon=True)
     monitor_thread.start()
-
-    app.run(host='127.0.0.1', port=9999, debug=True)
+    
+    # Set host and port
+    host = os.environ.get('FLASK_HOST', '0.0.0.0')
+    port = 9000
+    
+    # Log that we're starting with metrics enabled
+    logger.info(f"Starting Flask app on {host}:{port} with Prometheus metrics enabled at /metrics")
+    
+    # Run the app
+    app.run(host=host, port=port, debug=False)

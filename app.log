@@ -1,0 +1,1 @@
+2025-04-16 19:45:40,389 - __main__ - INFO - Starting Flask app on 0.0.0.0:9000 with Prometheus metrics enabled at /metrics

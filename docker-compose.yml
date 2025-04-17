@@ -4,14 +4,13 @@ services:
       context: .
       dockerfile: Dockerfile.mlapp
     ports:
-      - "5001:5001"
+      - "9000:9000"
     volumes:
       - ./models:/app/models
       - ./data:/app/data
-      - ./data/raw:/app/data/raw
 
     environment:
-      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - MLFLOW_TRACKING_URI=http://mlflow:6000
     depends_on:
       - mlflow
     networks:
@@ -22,7 +21,7 @@ services:
       context: .
       dockerfile: Dockerfile.mlflow
     ports:
-      - "5000:5000"
+      - "5000:6000"
     volumes:
       - mlflow-data:/mlflow
     networks:

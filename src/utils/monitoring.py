@@ -22,7 +22,26 @@ class RegressionMonitor():
         # Feature importance tracking (top 5 features)
         self.feature_importance = Gauge('feature_importance', 'Feature importance value', ['feature_name'])
 
+    def start(self):
+        """Start the Prometheus HTTP server and resource monitoring thread"""
+        try:
+            # Start the Prometheus HTTP server
+            start_http_server(self.port)
+            logger.info(f"Prometheus metrics server started on port {self.port}")
+            
+            # Start the resource monitoring thread
+            self.is_running = True
+            self.monitor_thread = threading.Thread(target=self._monitor_resources, daemon=True)
+            self.monitor_thread.start()
+            logger.info("Resource monitoring thread started")
+            
+            return True
+        except Exception as e:
+            logger.error(f"Failed to start monitoring: {e}")
+            return False
+
     def record_metrics(self, mse=None, rmse=None, mae=None, r_squared=None, feature_importance=None):
+        
         """Record regression metrics"""
         if mse is not None:
             self.mse.set(mse)

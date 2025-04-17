@@ -256,7 +256,7 @@
         "steppedLine": false,
         "targets": [
           {
-            "expr": "process_resident_memory_bytes{job=\"flowers-api\"}",
+            "expr": "process_resident_memory_bytes{job=\"ml-app\"}",
             "interval": "",
             "legendFormat": "Memory",
             "refId": "A"
@@ -351,7 +351,7 @@
         "steppedLine": false,
         "targets": [
           {
-            "expr": "rate(process_cpu_seconds_total{job=\"flowers-api\"}[1m])",
+            "expr": "rate(process_cpu_seconds_total{job=\"ml-app\"}[1m])",
             "interval": "",
             "legendFormat": "CPU Usage",
             "refId": "A"

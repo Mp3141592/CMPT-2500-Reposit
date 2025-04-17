@@ -30,13 +30,12 @@ groups:
         annotations:
           summary: "High memory usage"
           description: "Memory usage is {{ $value | humanize }}GB, exceeding the 1.5GB threshold."
-          
-      # Alert for stalled training (no updates to metrics in 15 minutes)
-      - alert: StalledTraining
-        expr: time() - max(training_epochs_total_created) > 900
-        for: 5m
+
+      - alert: HighRequestVolume
+        expr: rate(api_requests_total[1m]) > 10
+        for: 1m
         labels:
           severity: warning
         annotations:
-          summary: "Training appears to be stalled"
-          description: "No updates to training metrics in the last 15 minutes."
+          summary: "High request volume"
+          description: "API request rate is over 10 per minute"

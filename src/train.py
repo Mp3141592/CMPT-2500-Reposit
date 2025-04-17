@@ -48,13 +48,14 @@ class Train:
         try: 
             
             monitor = get_training_monitor(port=8002)
+            monitor.start()
             logger.info(f"Training commencing")
 
 
             # Start an MLflow run using the context manager
             with mlflow.start_run(run_name=f"GoAuto{in_arg.alpha}") as run:
                 
-                mlflow_tracking_uri = os.environ.get("http://localhost:5000")
+                mlflow_tracking_uri = os.environ.get("http://localhost:6000")
                 mlflow.set_tracking_uri(mlflow_tracking_uri)
 
                 mlflow.sklearn.autolog()

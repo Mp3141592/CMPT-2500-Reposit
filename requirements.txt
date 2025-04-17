@@ -46,6 +46,8 @@ dvc-task==0.40.2
 entrypoints==0.4
 filelock==3.17.0
 Flask==3.1.0
+prometheus-client==0.19.0
+prometheus-flask-exporter==0.23.0
 flatten-dict==0.4.2
 flufl.lock==8.1.0
 fonttools==4.56.0
@@ -98,8 +100,6 @@ pandas==2.2.3
 pathspec==0.12.1
 pillow==11.1.0
 platformdirs==4.3.6
-prometheus_client==0.21.1
-prometheus_flask_exporter==0.23.2
 prompt_toolkit==3.0.50
 propcache==0.3.0
 proto-plus==1.26.0
