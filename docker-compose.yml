@@ -21,7 +21,7 @@ services:
       context: .
       dockerfile: Dockerfile.mlflow
     ports:
-      - "6000:6000"
+      - "5000:6000"
     volumes:
       - mlflow-data:/mlflow
     networks:

@@ -23,7 +23,7 @@ metrics.info('flask_app_info', 'Application info', version='1.0.0')
 # Register prediction metrics with names matching Grafana dashboard expectations
 prediction_requests = Counter('model_prediction_requests_total', 'Total number of prediction requests', ['model_version'])
 prediction_time = Histogram('model_prediction_duration_seconds', 'Time spent processing prediction', ['model_version'])
-
+request_counter = Counter("api_requests_total", "Total number of API requests", ["method", "endpoint"])
 
 # Use standard names for memory and CPU metrics that Grafana dashboard is configured to use
 memory_usage = Gauge('app_memory_usage_bytes', 'Memory usage of the application')
@@ -157,6 +157,8 @@ def v1():
 
     start_time = time.time()
     
+    request_counter.labels(method="POST", endpoint="/v1/predict").inc()
+
     if not request.is_json:
         return jsonify({"error": "Request must be JSON data"})
     
@@ -206,7 +208,9 @@ def v1():
 def v2():
 
     start_time = time.time()
-
+    
+    request_counter.labels(method="POST", endpoint="/v2/predict").inc()
+    
     if not request.is_json:
         return jsonify({"error": "Request must be JSON data"})
     

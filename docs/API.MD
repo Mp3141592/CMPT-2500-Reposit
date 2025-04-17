@@ -6,9 +6,9 @@ This api predicts how much a car should be priced at by taking car information i
 ## How to use it?
 To run the api, input python src/predict_api.py in the terminal, since the api is located in the src folder.
 
-To use this api, after confirming that it is running by going to http://127.0.0.1:9999/health_status and seeing that status is up message, use the format and code below to enter the cars information and then run it in the terminal.
+To use this api, after confirming that it is running by going to http://127.0.0.1:9000/health_status and seeing that status is up message, use the format and code below to enter the cars information and then run it in the terminal.
 
-curl -X POST http://127.0.0.1:9999/<v1 or v2>/predict \\\
+curl -X POST http://127.0.0.1:9000/<v1 or v2>/predict \\\
 -H "Content-Type: application/json" \\\
 -d '{
     "stock_type": "Input USED or NEW",\
@@ -20,7 +20,7 @@ curl -X POST http://127.0.0.1:9999/<v1 or v2>/predict \\\
 }'
 
 For more information or examples, go to 
-http://127.0.0.1:9999/Car_Price_Prediction_home
+http://127.0.0.1:9000/Car_Price_Prediction_home
 
 ## What should I expect to get as output?
 Your output should look something like this in your terminal
